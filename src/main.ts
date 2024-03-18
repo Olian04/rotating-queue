@@ -34,7 +34,7 @@ export class Queue<T> {
   private readHead: number = 0;
   private writeHead: number = 0;
   constructor(maxSize: number) {
-    if (maxSize < 0 || maxSize % 1 !== 0) {
+    if (maxSize <= 0 || maxSize % 1 !== 0) {
       throw new Error('Queue size must be a positive integer');
     }
     const actualSize = maxSize + 1; // Allows for one empty value between the read and write heads
@@ -80,14 +80,14 @@ export class Queue<T> {
   /**
    * @returns The number of items currently in the queue
    */
-  itemsInQueue(): number {
+  public itemsInQueue(): number {
     return (this.array.length + this.writeHead - this.readHead) % this.array.length;
   }
 
   /**
    * @returns Promise that will return an item from the queue. While this promise is pending, calling Queue#read again will throw 'Unexpected multiple read'.
    */
-  async read(): Promise<T> {
+  public async read(): Promise<T> {
     if (this.consumeNext) {
       // eslint-disable-next-line no-restricted-syntax
       throw new Error('Unexpected multiple read');
@@ -108,7 +108,7 @@ export class Queue<T> {
    * @param item - Item to add to the queue
    * @returns Promise that should be awaited in order to support backpressure
    */
-  async write(item: T): Promise<void> {
+  public async write(item: T): Promise<void> {
     if (this.consumeNext) {
       this.consumeNext(item);
       return;

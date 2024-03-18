@@ -4,7 +4,7 @@ import { Queue } from '../src/main';
 
 const CORRECT = Symbol('Expected');
 
-describe('Read-Write', () => {
+describe('read-and-write-order', () => {
   it('Read after write', async ({ expect }) => {
     const Q = new Queue<Symbol>(5);
     expect(await Q.write(CORRECT)).to.equal(undefined);
@@ -25,5 +25,11 @@ describe('Read-Write', () => {
       await Q.read();
       expect.fail();
     } catch {}
+  });
+
+  it('should be ok if multiple write at the same time', async ({ expect }) => {
+    const Q = new Queue<Symbol>(5);
+    Q.write(CORRECT);
+    await Q.write(CORRECT);
   });
 });

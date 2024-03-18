@@ -1,29 +1,40 @@
 import { it, describe } from 'vitest';
 
 import { Queue } from '../src/main';
+import { sleep } from './util/sleep';
 
 const CORRECT = Symbol('Expected');
 
-describe('createQueue', () => {
-  it('should thrown when created with an invalid size', async ({ expect }) => {
+describe('new-queue', () => {
+  it('should thrown when passed zero size', async ({ expect }) => {
+    try {
+      const Q = new Queue<Symbol>(0);
+      expect.fail();
+    } catch {}
+  });
+
+
+  it('should thrown when passed negative size', async ({ expect }) => {
     try {
       const Q = new Queue<Symbol>(-1);
       expect.fail();
     } catch {}
+  });
 
+  it('should thrown when passed float size', async ({ expect }) => {
     try {
       const Q = new Queue<Symbol>(1.1);
       expect.fail();
     } catch {}
   });
 
-  it('should be functional with size 1', async ({ expect }) => {
+  it('should be ok with size 1', async ({ expect }) => {
     const Q = new Queue<Symbol>(1);
     expect(await Q.write(CORRECT)).to.equal(undefined);
     expect(await Q.read()).to.equal(CORRECT);
   });
 
-  it('should be functional with very large size', async ({ expect }) => {
+  it('should be ok with very large size', async ({ expect }) => {
     const Q = new Queue<Symbol>(2**20);
     const readProm = Q.read();
     expect(await Q.write(CORRECT)).to.equal(undefined);
