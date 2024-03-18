@@ -15,7 +15,9 @@ export default [
     ],
     treeshake: true,
     plugins: [
-      typescript(),
+      typescript({
+        module: "es6",
+      }),
       commonjs(),
       terser({
         sourceMap: true,
