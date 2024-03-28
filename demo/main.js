@@ -22,10 +22,10 @@ Promise.all([
     handler: (ev, ctx) => ctx.route(ev),
   }),
   loloNode(B, {
-    handler: (ev) => console.log(ev),
+    handler: (ev) => console.log("B", ev),
   }),
   loloNode(C, {
-    handler: (ev) => console.log(ev),
+    handler: (ev) => console.log("C", ev),
   }),
 ]);
 
