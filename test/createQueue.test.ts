@@ -1,7 +1,6 @@
 import { it, describe } from 'vitest';
 
 import { Queue } from '../src/main';
-import { sleep } from './util/sleep';
 
 const CORRECT = Symbol('Expected');
 
