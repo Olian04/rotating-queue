@@ -4,7 +4,7 @@ type Read<T> = (
 );
 
 /**
- * Queue is a fixed size rotating queue.
+ * Queue is a fixed size rotating queue with a backpressure mechanic.
  *
  * Internal queue buffer:
  *
@@ -26,6 +26,8 @@ type Read<T> = (
  * their index exceeds the maximum index of the internal queue buffer.
  * Reads will fail when the read header and the write header points to the same index.
  * Writes will fail when the write header points to the index immediately before the read header.
+ * When a Read fails, a promise will be returned that will resolve on the next Write.
+ * When a Write fails, a promise will be returned that will resolve on the next Read.
  */
 export class Queue<T> {
   private array: T[];
@@ -73,11 +75,11 @@ export class Queue<T> {
     return [item, true];
   }
 
-  public isEmpty(): boolean {
+  private isEmpty(): boolean {
     return this.readHead === this.writeHead;
   }
 
-  public isFull(): boolean {
+  private isFull(): boolean {
     const newWriteHead = this.getIncrementedHead(this.writeHead);
     return newWriteHead === this.readHead;
   }
@@ -95,6 +97,16 @@ export class Queue<T> {
   public size(): number {
     // "I should have written down how I arrived at this equation" - Oliver
     return (this.array.length + this.writeHead - this.readHead) % this.array.length;
+  }
+
+  /**
+   * @returns A positive float indicating the throughput of the queue. An empty queue will have a pressure of 0, while a queue at capacity will have a pressure of 1. A queue with backpressure will have a pressure above 1.
+   */
+  public pressure(): number {
+    const capacity = this.capacity();
+    const size = this.size();
+    const backpressure = this.backpressureWaitQueue.length;
+    return (size + backpressure) / capacity;
   }
 
   /**
