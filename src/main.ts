@@ -33,21 +33,12 @@ export class Queue<T> {
   private consumeNext?: (item: T) => void;
   private readHead: number = 0;
   private writeHead: number = 0;
-  constructor(maxSize: number) {
-    if (maxSize <= 0 || maxSize % 1 !== 0) {
-      throw new Error('Queue size must be a positive integer');
+  constructor(capacity: number) {
+    if (capacity <= 0 || capacity % 1 !== 0) {
+      throw new Error('Queue capacity must be a positive integer');
     }
-    const actualSize = maxSize + 1; // Allows for one empty value between the read and write heads
+    const actualSize = capacity + 1; // Allows for one empty value between the read and write heads
     this.array = new Array<T>(actualSize).fill(null as T);
-  }
-
-  private canRead(): boolean {
-    return this.readHead !== this.writeHead;
-  }
-
-  private canWrite(): boolean {
-    const newWriteHead = this.getIncrementedHead(this.writeHead);
-    return newWriteHead !== this.readHead;
   }
 
   private getIncrementedHead(current: number): number {
@@ -63,11 +54,16 @@ export class Queue<T> {
   }
 
   private processBackpressure(): void {
-    this.backpressureWaitQueue.shift()?.();
+    const fn = this.backpressureWaitQueue.shift();
+    if (!fn) {
+      return;
+    }
+    // Using setImmediate since it will enqueue a macrotask instead of a microtask, this is done to avoid deadlock with microtask queue
+    setImmediate(fn);
   }
 
   private readSync(): Read<T> {
-    if (!this.canRead()) {
+    if (this.isEmpty()) {
       return [null, false];
     }
     const item = this.array[this.readHead];
@@ -77,10 +73,27 @@ export class Queue<T> {
     return [item, true];
   }
 
+  public isEmpty(): boolean {
+    return this.readHead === this.writeHead;
+  }
+
+  public isFull(): boolean {
+    const newWriteHead = this.getIncrementedHead(this.writeHead);
+    return newWriteHead === this.readHead;
+  }
+
   /**
-   * @returns The number of items currently in the queue
+   * @returns The total number of items the queue can hold before backpressure kicks in.
    */
-  public itemsInQueue(): number {
+  public capacity(): number {
+    return this.array.length - 1;
+  }
+
+  /**
+   * @returns The number of items currently in the queue.
+   */
+  public size(): number {
+    // "I should have written down how I arrived at this equation" - Oliver
     return (this.array.length + this.writeHead - this.readHead) % this.array.length;
   }
 
@@ -113,7 +126,7 @@ export class Queue<T> {
       this.consumeNext(item);
       return;
     }
-    if (!this.canWrite()) {
+    if (this.isFull()) {
       await new Promise<void>(resolve => {
         this.backpressureWaitQueue.push(() => resolve());
       });

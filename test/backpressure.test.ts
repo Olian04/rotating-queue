@@ -17,6 +17,7 @@ describe('backpressure', () => {
 
     expect(await Q.read()).to.equal(FIRST);
     for (let i = 0; i < target; i++) {
+      await new Promise(resolve => setImmediate(resolve));
       expect(await Q.read()).to.equal(CORRECT);
     }
   });
