@@ -4,7 +4,7 @@ import { Queue } from '../src/main';
 
 const CORRECT = Symbol('Expected');
 
-describe('itemsInQueue', () => {
+describe('size', () => {
   it('should be 0 for empty queue', async ({ expect }) => {
     const Q = new Queue<Symbol>(5);
     expect(Q.size()).to.equal(0);
