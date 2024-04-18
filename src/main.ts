@@ -4,7 +4,7 @@ type Read<T> = (
 );
 
 /**
- * Queue is a fixed size rotating queue with a backpressure mechanic.
+ * Queue is a fixed size rotating queue with a backpressure mechanism.
  *
  * Internal queue buffer:
  *
@@ -56,12 +56,7 @@ export class Queue<T> {
   }
 
   private processBackpressure(): void {
-    const fn = this.backpressureWaitQueue.shift();
-    if (!fn) {
-      return;
-    }
-    // Using setImmediate since it will enqueue a macrotask instead of a microtask, this is done to avoid deadlock with microtask queue
-    setImmediate(fn);
+    this.backpressureWaitQueue.shift()?.();
   }
 
   private readSync(): Read<T> {
